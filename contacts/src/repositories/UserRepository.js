@@ -8,7 +8,7 @@ export class UserRepository {
         return new Promise( (resolve, reject) => {
             if (Math.random() * 100 < 50) resolve(users);
             else
-                reject(new Error("This is not handled properly"));
+                throw new Error("This is not handled properly");
         });
     }
 }
