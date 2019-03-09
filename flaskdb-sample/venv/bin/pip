@@ -1,4 +1,4 @@
-#!/Users/hank/Development/Samples/flashdb-sample/venv/bin/python
+#!/Users/hank/Development/Samples/flaskdb-sample/venv/bin/python
 # EASY-INSTALL-ENTRY-SCRIPT: 'pip==10.0.1','console_scripts','pip'
 __requires__ = 'pip==10.0.1'
 import re

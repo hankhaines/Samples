@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/Users/hank/Development/Samples/flashdb-sample/venv"
+VIRTUAL_ENV="/Users/hank/Development/Samples/flaskdb-sample/venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

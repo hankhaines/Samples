@@ -1,4 +1,4 @@
-#!/Users/hank/Development/Samples/flashdb-sample/venv/bin/python
+#!/Users/hank/Development/Samples/flaskdb-sample/venv/bin/python
 
 # -*- coding: utf-8 -*-
 import re
