@@ -12,10 +12,11 @@ dbDataSet = DataSet(dbInstance)
 
 class BaseModel(Model):
     create_timestamp = DateTimeField(constraints=[SQL('DEFAULT CURRENT_TIMESTAMP')], null=True)
-    update_timestamp = DateTimeField(null=True)
+    update_timestamp = DateTimeField(constraints=[SQL('DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')],
+                                     null=True)
 
     def save(self, *args, **kwargs):
-        self.update_timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        # self.update_timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         return super(BaseModel, self).save(*args, **kwargs)
 
     class Meta:
@@ -27,44 +28,26 @@ class ConflictDetectedException(Exception):
 
 
 class BaseVersionedModel(BaseModel):
-    version = IntegerField(default=1, index=True)
+    version = IntegerField(constraints=[SQL('DEFAULT 1')], index=True)
 
-    def save_optimistic(self):
-        if not self.id:
-            # This is a new record, so the default logic is to perform an
-            # INSERT. Ideally your model would also have a unique
-            # constraint that made it impossible for two INSERTs to happen
-            # at the same time.
-            return self.save()
+    def __init__(self, *args, **kwargs):
+        self._current_version = 1
+        super(BaseModel, self).__init__(*args, **kwargs)
 
-        # Update any data that has changed and bump the version counter.
-        field_data = dict(self._data)
-        current_version = field_data.pop('version', 1)
-
-        field_data = self._prune_fields(field_data, self.dirty_fields)
-        if not field_data:
-            # No changes were found, so lets not do anything leaving the version as is
-            return True
-
+    def _pk_expr(self):
         model_class = type(self)
-        field_data['version'] = model_class.version + 1  # Atomic increment.
+        return (model_class.version == self._current_version) & (self._meta.primary_key == self._pk)
 
-        query = model_class.update(**field_data).where(
-            (model_class.version == current_version) &
-            (model_class.id == self.id))
-        if query.execute() == 0:
-            # No rows were updated, indicating another process has saved
-            # a new version. How you handle this situation is up to you,
-            # but for simplicity I'm just raising an exception.
+    def save(self, *args, **kwargs):
+        if not self.id:
+            return super(BaseVersionedModel, self).save(*args, **kwargs)
+
+        self._current_version = self.version
+        self.version += 1
+
+        rows = super(BaseVersionedModel, self).save(*args, **kwargs)
+        if rows == 0:
             raise ConflictDetectedException()
         else:
             # Increment local version to match what is now in the db.
-            self.version += 1
-            return True
-
-
-@pre_save(sender=BaseModel)
-def on_save_handler(model_class, instance, created):
-    if hasattr(instance, 'update_timestamp'):
-        if created is None:
-            instance.updated_timestamp = datetime.datetime.now()
+            return rows
