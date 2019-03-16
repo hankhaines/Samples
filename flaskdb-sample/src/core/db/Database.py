@@ -15,10 +15,6 @@ class BaseModel(Model):
     update_timestamp = DateTimeField(constraints=[SQL('DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')],
                                      null=True)
 
-    def save(self, *args, **kwargs):
-        # self.update_timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-        return super(BaseModel, self).save(*args, **kwargs)
-
     class Meta:
         database = dbInstance
 
