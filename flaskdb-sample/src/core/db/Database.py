@@ -1,7 +1,4 @@
-import datetime
-
 from peewee import *
-from playhouse.signals import pre_save
 from playhouse.mysql_ext import MySQLConnectorDatabase
 from playhouse.dataset import DataSet
 
@@ -45,5 +42,5 @@ class BaseVersionedModel(BaseModel):
         if rows == 0:
             raise ConflictDetectedException()
         else:
-            # Increment local version to match what is now in the db.
+            # Increment local version to match what is now in the db and return rows as base class
             return rows
